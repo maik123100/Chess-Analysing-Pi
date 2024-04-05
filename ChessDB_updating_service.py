@@ -103,8 +103,10 @@ def push_games_to_db(games):
         try:
             # Execute the SQL command
             cursor.execute(sql, values)
+            print("Game inserted")
             # Commit your changes in the database
             db.commit()
+            print("Game committed")
         except:
             # Rollback in case there is any error
             db.rollback()
