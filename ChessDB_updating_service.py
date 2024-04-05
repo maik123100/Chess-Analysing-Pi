@@ -99,7 +99,7 @@ def push_games_to_db(games):
         sql = """INSERT INTO games(white_username, white_rating, black_username, black_rating, time_control, pgn, win)
                  VALUES (%s, %s, %s, %s, %s, %s, %s)"""
         values = (game['white']['username'], game['white']['rating'], game['black']['username'], game['black']['rating'], game['time_control'], ''.join(str(move) for move in games[0]['structured_pgn']['moves']), game['structured_pgn']['win'])
-
+        print("SQL query prepared")
         try:
             # Execute the SQL command
             cursor.execute(sql, values)
