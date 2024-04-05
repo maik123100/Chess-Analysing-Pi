@@ -107,8 +107,10 @@ def push_games_to_db(games):
             # Commit your changes in the database
             db.commit()
             print("Game committed")
-        except:
+        except Exception as e:
             # Rollback in case there is any error
+            print(f"Error inserting game: {game}")
+            print(f"Error: {e}")
             db.rollback()
 
     # disconnect from server
