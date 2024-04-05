@@ -5,6 +5,7 @@ from datetime import datetime
 import time
 import mysql.connector
 import os
+from dotenv import load_dotenv
 
 
 def get_today_games_by_username(username):
@@ -45,7 +46,7 @@ def pgn_in_object_Format(pgn):
     win = moves_and_result[-1]
 
     # Split the moves into tuples of (move number, white move, black move)
-    moves = [(moves[i], moves[i+1], moves[i+2]) for i in range(0, len(moves), 3)]
+    moves = [(moves[i], moves[i+1], moves[i+2] if i+2 < len(moves) else "None") for i in range(0, len(moves), 3)]
 
     # Create the object
     pgn_object = {
@@ -76,6 +77,7 @@ def trimJSONData(json_game):
     return trimmed
     
 def get_JSONgames_for_db_by_username(username):
+    print(f"Fetching games for {username}")
     games = get_today_games_by_username(username)
     JSONgames_Array = []
     for game in games:
@@ -89,10 +91,34 @@ def push_games_to_db(games):
         password=os.getenv("DB_PASSWORD"),
         database=os.getenv("DB_NAME")
     )
+
+    cursor = db.cursor()
+
+    for game in games:
+        # Prepare SQL query to INSERT a record into the database.
+        sql = """INSERT INTO games(white_username, white_rating, black_username, black_rating, time_control, pgn, win)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+        values = (game['white']['username'], game['white']['rating'], game['black']['username'], game['black']['rating'], game['time_control'], ' '.join(game['moves']), game['win'])
+
+        try:
+            # Execute the SQL command
+            cursor.execute(sql, values)
+            # Commit your changes in the database
+            db.commit()
+        except:
+            # Rollback in case there is any error
+            db.rollback()
+
+    # disconnect from server
     db.close()
-    pass
 
 
 if __name__ == "__main__":
-    games= get_JSONgames_for_db_by_username(os.getenv("CHESS_USERNAME"))
-    pprint.pprint(games)
+    load_dotenv()
+    games = get_JSONgames_for_db_by_username(os.getenv("CHESS_USERNAME"))
+    if os.getenv("ENV_Test") == "test":
+        pprint.pprint(games)
+    elif os.getenv("ENV_Test") == "server":
+        push_games_to_db(games)
+    else:
+        raise Exception("ENV_Test must be set to either 'test' or 'prod'")
