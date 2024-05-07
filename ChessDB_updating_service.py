@@ -1,10 +1,11 @@
 import subprocess
 import pprint
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import mysql.connector
 import os
+import sys
 from dotenv import load_dotenv
 
 
@@ -19,6 +20,27 @@ def get_today_games_by_username(username):
         response = subprocess.run(command, capture_output=True, text=True, check=True)
         json_data = json.loads(response.stdout)
         return filterTodayGames(json_data['games'])
+    except subprocess.CalledProcessError as e:
+        print(f"Error fetching data for {username}: {e}")
+        return None
+
+def get_last_month_games_by_username(username):
+    # Construct the URL for fetching today's games for the given username
+    base_url = f"https://api.chess.com/pub/player/{username}/games/{datetime.now().strftime('%Y/%m')}"
+    base_url_last_month = f"https://api.chess.com/pub/player/{username}/games/{(datetime.now() - timedelta(days=30)).strftime('%Y/%m')}"
+    # Run curl command to make the HTTP request
+    command = ["curl", base_url]
+    try:
+        # Execute the curl command and capture the output
+        response = subprocess.run(command, capture_output=True, text=True, check=True)
+        response_last_month = subprocess.run(["curl", base_url_last_month], capture_output=True, text=True, check=True)
+        json_data = json.loads(response.stdout)
+        json_data_last_month = json.loads(response_last_month.stdout)
+        #pprint.pprint(json_data)
+        #pprint.pprint(json_data_last_month)
+        for game in json_data_last_month['games']:
+            json_data['games'].append(game)
+        return json_data['games']
     except subprocess.CalledProcessError as e:
         print(f"Error fetching data for {username}: {e}")
         return None
@@ -63,6 +85,7 @@ def trimJSONData(json_game):
     better_pgn=pgn_in_object_Format(better_pgn)
     #better_pgn = pgn_in_object_Format(better_pgn)
     trimmed = {
+        "uuid":json_game["uuid"],
         "white": {
             "username": json_game["white"]["username"],
             "rating": json_game["white"]["rating"]
@@ -96,9 +119,9 @@ def push_games_to_db(games):
 
     for game in games:
         # Prepare SQL query to INSERT a record into the database.
-        sql = """INSERT INTO games(white_username, white_rating, black_username, black_rating, time_control, pgn, win)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s)"""
-        values = (game['white']['username'], game['white']['rating'], game['black']['username'], game['black']['rating'], game['time_control'], ''.join(str(move) for move in games[0]['structured_pgn']['moves']), game['structured_pgn']['win'])
+        sql = """INSERT INTO games(uuid, white_username, white_rating, black_username, black_rating, time_control, pgn, win)
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+        values = (game['uuid'], game['white']['username'], game['white']['rating'], game['black']['username'], game['black']['rating'], game['time_control'], ''.join(str(move) for move in game['structured_pgn']['moves']), game['structured_pgn']['win'])
         print("SQL query prepared")
         try:
             # Execute the SQL command
@@ -118,12 +141,28 @@ def push_games_to_db(games):
 
 
 if __name__ == "__main__":
-    load_dotenv()
-    games = get_JSONgames_for_db_by_username(os.getenv("CHESS_USERNAME"))
     if os.getenv("ENV_Test") == "test":
-        print(''.join(str(move) for move in games[0]['structured_pgn']['moves']))
-        pprint.pprint(games)
+        #pprint.pprint(games)
+        pprint.pprint(get_last_month_games_by_username(os.getenv("CHESS_USERNAME")))
     elif os.getenv("ENV_Test") == "server":
-        push_games_to_db(games)
+        if len(sys.argv) != 2:
+            print("Please provide one argument: 'init' for initialization or 'std' for standard execution")
+        else:
+            load_dotenv()
+            arg = sys.argv[1]
+            games = None
+            if arg == 'init':
+                # Code for initialization
+                print("Initializing the database with the last month worth of games...")
+                games = get_last_month_games_by_username(os.getenv("CHESS_USERNAME"))
+            elif arg == 'std':
+                # Code for standard execution
+                print("Standard execution...")
+                games = get_JSONgames_for_db_by_username(os.getenv("CHESS_USERNAME"))
+            else:
+                print("Invalid argument. Please provide 'init' for initialization or 'std' for standard execution")
+                sys.exit(1)
+            push_games_to_db(games)
     else:
+        print("Invalid value for ENV_Test")
         raise Exception("ENV_Test must be set to either 'test' or 'prod'")
