@@ -91,6 +91,8 @@ def get_JSONgames_for_db_by_username(username):
     return JSONgames_Array
 
 def push_games_to_db(games):
+    print("Pushing games to the database...")
+    print(f"PSSWD: {os.getenv('DB_PASSWORD')}")
     db = psycopg2.connect(
         dbname=os.getenv("DB_NAME"),
         user=os.getenv("DB_USER"),
