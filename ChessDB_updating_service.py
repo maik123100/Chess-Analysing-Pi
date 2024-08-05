@@ -82,6 +82,14 @@ def trimJSONData(json_game):
     }
     return trimmed
 
+def get_JSON_Month_games_for_db_by_username(username):
+    print(f"Fetching games for {username}")
+    games = get_last_month_games_by_username(username)
+    JSONgames_Array = []
+    for game in games:
+        JSONgames_Array.append(trimJSONData(game))
+    return JSONgames_Array
+
 def get_JSONgames_for_db_by_username(username):
     print(f"Fetching games for {username}")
     games = get_today_games_by_username(username)
@@ -148,8 +156,8 @@ if __name__ == "__main__":
             games = None
             if arg == 'init':
                 print("Initializing the database with the last month worth of games...")
-                pprint.pprint(get_last_month_games_by_username(os.getenv("CHESS_USERNAME")))
-                games = get_last_month_games_by_username(os.getenv("CHESS_USERNAME"))
+                games=get_JSON_Month_games_for_db_by_username(os.getenv("CHESS_USERNAME"))
+                pprint.pprint(games)
             elif arg == 'std':
                 print("Standard execution...")
                 games = get_JSONgames_for_db_by_username(os.getenv("CHESS_USERNAME"))
