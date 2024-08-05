@@ -139,7 +139,7 @@ if __name__ == "__main__":
     print(f"ENV_Test: {os.getenv('ENV_Test')}")
     if os.getenv("ENV_Test") == "test":
         pprint.pprint(get_last_month_games_by_username(os.getenv("CHESS_USERNAME")))
-    elif os.getenv("ENV_Test") == "server":
+    elif os.getenv("ENV_Test") == "prod":
         if len(sys.argv) != 2:
             print("Please provide one argument: 'init' for initialization or 'std' for standard execution")
         else:
