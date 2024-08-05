@@ -157,7 +157,6 @@ if __name__ == "__main__":
             if arg == 'init':
                 print("Initializing the database with the last month worth of games...")
                 games=get_JSON_Month_games_for_db_by_username(os.getenv("CHESS_USERNAME"))
-                pprint.pprint(games)
             elif arg == 'std':
                 print("Standard execution...")
                 games = get_JSONgames_for_db_by_username(os.getenv("CHESS_USERNAME"))
