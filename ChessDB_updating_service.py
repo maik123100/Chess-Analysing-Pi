@@ -92,7 +92,6 @@ def get_JSONgames_for_db_by_username(username):
 
 def push_games_to_db(games):
     print("Pushing games to the database...")
-    print(f"PSSWD: {os.getenv('DB_PASSWORD')}")
     db = psycopg2.connect(
         dbname=os.getenv("DB_NAME"),
         user=os.getenv("DB_USER"),
@@ -149,6 +148,7 @@ if __name__ == "__main__":
             games = None
             if arg == 'init':
                 print("Initializing the database with the last month worth of games...")
+                pprint.pprint(get_last_month_games_by_username(os.getenv("CHESS_USERNAME")))
                 games = get_last_month_games_by_username(os.getenv("CHESS_USERNAME"))
             elif arg == 'std':
                 print("Standard execution...")
