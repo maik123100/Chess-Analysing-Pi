@@ -1,8 +1,0 @@
-services:
-  app:
-    image: my-python-app
-    volumes:
-    - type: bind
-      source: /var/run/docker.sock
-      target: /var/run/docker.sock
-    command: ["cron", "-f"]
