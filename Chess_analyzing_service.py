@@ -6,21 +6,40 @@ from dotenv import load_dotenv
 
 stockfishPath='../Stockfish/src/stockfish'
 
-def runStockfishOnFen(fen,depth,threads,path):
-    process= subprocess.Popen([path],
-                              stdin=subprocess.PIPE,
-                              stderr=subprocess.PIPE,
-                              stdout=subprocess.PIPE,
-                              text=True)
+def runStockfishOnFen(fen, depth, threads, path):
+    process = subprocess.Popen([path],
+                               stdin=subprocess.PIPE,
+                               stderr=subprocess.PIPE,
+                               stdout=subprocess.PIPE,
+                               text=True)
     sleep(0.1)
-    process.stdin.write(f"uci\n")
-    process.stdin.write(f"setoption name Threads value {threads}\n")
-    process.stdin.write(f"position feb {fen}\n")
-    process.stdin.write(f"go depth {depth}\n")
-    process.stdin.write(f"quit\n")
-    process.stdin.flush()
-    output,error=process.communicate()
-    print(f"Encountered error:{error}")
+    
+    # Send commands to Stockfish and print them
+    commands = [
+        "uci\n",
+        f"setoption name Threads value {threads}\n",
+        f"position fen {fen}\n",
+        f"go depth {depth}\n",
+        "quit\n"
+    ]
+    
+    for command in commands:
+        print(f"Sending command: {command.strip()}")
+        process.stdin.write(command)
+        process.stdin.flush()
+    
+    # Capture and print output in real-time
+    while True:
+        output = process.stdout.readline()
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            print(output.strip())
+    
+    error = process.stderr.read()
+    if error:
+        print(f"Encountered error: {error.strip()}")
+    
     return output
 
 if __name__=="__main__":
