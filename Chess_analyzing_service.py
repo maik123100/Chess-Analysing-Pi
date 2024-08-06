@@ -27,14 +27,13 @@ def runStockfishOnFen(fen, depth, threads, path):
         print(f"Sending command: {command.strip()}")
         process.stdin.write(command)
         process.stdin.flush()
-    
-    # Capture and print output in real-time
-    while True:
-        output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
-            break
-        if output:
-            print(output.strip())
+        sleep(0.5)
+        while True:
+            output = process.stdout.readline()
+            if output == '' and process.poll() is not None:
+                break
+            if output:
+                print(output.strip())   
     
     error = process.stderr.read()
     if error:
