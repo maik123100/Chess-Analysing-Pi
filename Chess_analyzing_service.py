@@ -1,4 +1,4 @@
-from stockfish import Stockfish
+from Projects.stockfish.stockfish.stockfish import Stockfish
 
 sf=Stockfish(path="../Stockfish/src/stockfish",depth=21)
 
