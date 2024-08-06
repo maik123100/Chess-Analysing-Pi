@@ -27,13 +27,16 @@ def runStockfishOnFen(fen, depth, threads, path):
         print(f"Sending command: {command.strip()}")
         process.stdin.write(command)
         process.stdin.flush()
-        sleep(0.5)
+        
+        # Capture and print output after sending each command
         while True:
             output = process.stdout.readline()
             if output == '' and process.poll() is not None:
                 break
             if output:
-                print(output.strip())   
+                print(output.strip())
+            if "uciok" in output or "bestmove" in output:
+                break
     
     error = process.stderr.read()
     if error:
