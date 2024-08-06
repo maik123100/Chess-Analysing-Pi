@@ -28,6 +28,9 @@ def runStockfishOnFen(fen, depth, threads, path):
         process.stdin.write(command)
         process.stdin.flush()
         
+        if command==f"position fen {fen}\n" or command==f"go depth {depth}\n":
+            continue
+
         # Capture and print output after sending each command
         while True:
             output = process.stdout.readline()
