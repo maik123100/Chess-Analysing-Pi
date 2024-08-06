@@ -4,7 +4,7 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 
-stockfishPath="~/Projects/Stockfish/src/stockfish"
+stockfishPath='../Stockfish/src/stockfish'
 
 def runStockfishOnFen(fen,depth,threads,path):
     process= subprocess.Popen([path],
@@ -23,8 +23,8 @@ def runStockfishOnFen(fen,depth,threads,path):
     print(f"Encountered error:{error}")
     return output
 
-if __name__="__main__":
-    fen=""
+if __name__=="__main__":
+    fen="2kr4/p7/bbp3pp/5p2/2P5/5P2/1P2QNNq/2R2K2 b - - 1 31"
     depth=21
     threads=4
     print(runStockfishOnFen(fen,depth,threads,stockfishPath))
