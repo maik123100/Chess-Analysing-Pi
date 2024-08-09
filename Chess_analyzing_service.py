@@ -10,7 +10,9 @@ def get_Best_line(fen,threads,depth):
     engine.configure({"Threads": threads})
     board=chess.Board(fen)
     info=engine.analyse(board,chess.engine.Limit(depth=depth))
-    return info["pv"]
+    engine.quit()
+    return (info["pv"],info["score"])
 
 if __name__=="__main__":
-    print(f" Best line for position {testFen} is:{get_Best_line(testFen,4,21)}")
+    line,score=get_Best_line(testFen,4,21)
+    print(f"Best line for position (Score:{score}) {testFen} is:{line}")
