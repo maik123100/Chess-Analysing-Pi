@@ -2,7 +2,7 @@ import chess
 import chess.engine
 
 stockfishPath="/home/Maik/Projects/Stockfish/src/stockfish"
-testFen=""
+testFen="6k1/4q1p1/2p3Qp/2p5/2Pb2PP/1P2r3/6K1/5R2 w - - 3 40"
 
 
 def get_Best_line(fen,threads,depth):
