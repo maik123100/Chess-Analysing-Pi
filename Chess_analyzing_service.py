@@ -1,7 +1,16 @@
-from Projects.stockfish.stockfish.stockfish import Stockfish
+import chess
+import chess.engine
 
-sf=Stockfish(path="../Stockfish/src/stockfish",depth=21)
+stockfishPath="/home/Maik/Projects/Stockfish/src/stockfish"
+testFen=""
 
-if sf.is_fen_valid("r4r1k/ppp3p1/5n1q/3P4/3Q1p1P/2NB2PN/PPP2P2/R4RK1 b - - 0 18"):
-    sf.set_fen_position("r4r1k/ppp3p1/5n1q/3P4/3Q1p1P/2NB2PN/PPP2P2/R4RK1 b - - 0 18")
-    print(sf.get_best_move())
+
+def get_Best_line(fen,threads,depth):
+    engine=chess.engine.SimpleEngine.popen_uci(stockfishPath)
+    engine.configure({"Threads": threads})
+    board=chess.Board(fen)
+    info=engine.analyse(board,chess.engine.Limit(depth=depth))
+    return info["pv"]
+
+if __name__=="__main__":
+    print(f" Best line for position {testFen} is:{get_Best_line(testFen,4,21)}")
