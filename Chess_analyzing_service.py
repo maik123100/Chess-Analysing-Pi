@@ -52,6 +52,7 @@ def getGamesFromDB()->List[str]:
         list: List of games
     """
     print("Fetching games from the database...")
+    print(f"DB_NAME: {os.getenv('DB_NAME')}, DB_USER: {os.getenv('DB_USER')}, DB_PASSWORD: {os.getenv('DB_PASSWORD')}, DB_HOST: {os.getenv('DB_HOST')}")
     db = psycopg2.connect(
         dbname=os.getenv("DB_NAME"),
         user=os.getenv("DB_USER"),
