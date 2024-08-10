@@ -3,6 +3,7 @@ import chess.engine
 import psycopg2
 import os
 import sys
+import pprint
 from dotenv import load_dotenv
 from typing import List, Tuple
 
@@ -91,8 +92,9 @@ def getGamesFromDB()->List[str]:
     
 
 if __name__=="__main__":
-    line,score=get_Best_line(testFen,4,21)
-    board = chess.Board(testFen)
-    pgn_line = convert_to_pgn(board, line)
-    print(f"Best line for position (Score:{score}) {testFen} is:{line}\n In PGN notation: {pgn_line}")
-    print(f"Games from the database: {getGamesFromDB()}")
+    #line,score=get_Best_line(testFen,4,21)
+    #board = chess.Board(testFen)
+    #pgn_line = convert_to_pgn(board, line)
+    #print(f"Best line for position (Score:{score}) {testFen} is:{line}\n In PGN notation: {pgn_line}")
+    print("Games in the database:")
+    pprint.pprint(getGamesFromDB())
