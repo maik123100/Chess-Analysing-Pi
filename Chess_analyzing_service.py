@@ -1,10 +1,13 @@
 import chess
 import chess.engine
+import psycopg2
+import os
+import sys
+from dotenv import load_dotenv
 from typing import List, Tuple
 
 stockfishPath="/home/Maik/Projects/Stockfish/src/stockfish"
 testFen="6k1/4q1p1/2p3Qp/2p5/2Pb2PP/1P2r3/6K1/5R2 w - - 3 40"
-
 
 def get_Best_line(fen:str,threads:int,depth:int)->Tuple[List[chess.Move],chess.engine.PovScore]:
     """
@@ -42,8 +45,53 @@ def convert_to_pgn(board: chess.Board, moves: List[chess.Move]) -> List[str]:
         board.push(move)
     return pgn_moves
 
+def getGamesFromDB()->List[str]:
+    """
+    Fetches the games from the database
+    Returns:
+        list: List of games
+    """
+    print("Fetching games from the database...")
+    db = psycopg2.connect(
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        host=os.getenv("DB_HOST")
+    )
+    cursor=db.cursor()
+
+    fetch_games_query = """
+    SELECT uuid, white_username, white_rating, black_username, black_rating, time_control, pgn, win 
+    FROM games
+    """
+    cursor.execute(fetch_games_query)
+    games = cursor.fetchall()
+
+    # Close the cursor and connection
+    cursor.close()
+    db.close()
+
+    # Convert the fetched data into a list of dictionaries
+    games_list = []
+    for game in games:
+        game_dict = {
+            "uuid": game[0],
+            "white_username": game[1],
+            "white_rating": game[2],
+            "black_username": game[3],
+            "black_rating": game[4],
+            "time_control": game[5],
+            "pgn": game[6],
+            "win": game[7]
+        }
+        games_list.append(game_dict)
+
+    return games_list
+    
+
 if __name__=="__main__":
     line,score=get_Best_line(testFen,4,21)
     board = chess.Board(testFen)
     pgn_line = convert_to_pgn(board, line)
     print(f"Best line for position (Score:{score}) {testFen} is:{line}\n In PGN notation: {pgn_line}")
+    print(f"Games from the database: {getGamesFromDB()}")
