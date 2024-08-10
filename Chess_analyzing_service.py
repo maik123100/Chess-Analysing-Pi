@@ -45,5 +45,5 @@ def convert_to_pgn(board: chess.Board, moves: List[chess.Move]) -> List[str]:
 if __name__=="__main__":
     line,score=get_Best_line(testFen,4,21)
     board = chess.Board(testFen)
-    pgn_line = convert_to_pgn(board, best_line)
+    pgn_line = convert_to_pgn(board, line)
     print(f"Best line for position (Score:{score}) {testFen} is:{line}\n In PGN notation: {pgn_line}")
