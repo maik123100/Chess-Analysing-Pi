@@ -47,7 +47,7 @@ def convert_to_pgn(board: chess.Board, moves: List[chess.Move]) -> List[str]:
         board.push(move)
     return pgn_moves
 
-def getGamesFromDB()->List[str]:
+def getGamesFromDB(amount: int = -1) -> List[str]:
     """
     Fetches the games from the database
     Returns:
@@ -64,9 +64,12 @@ def getGamesFromDB()->List[str]:
     cursor=db.cursor()
 
     fetch_games_query = """
-    SELECT uuid, white_username, white_rating, black_username, black_rating, time_control, pgn, win 
-    FROM games
-    """
+        SELECT uuid, white_username, white_rating, black_username, black_rating, time_control, pgn, win 
+        FROM games
+        """
+    if amount != -1:
+        fetch_games_query += f" LIMIT {amount}"
+    
     cursor.execute(fetch_games_query)
     games = cursor.fetchall()
 
@@ -109,7 +112,7 @@ def getFensFromMoveList(moves:List[chess.Move])->List[str]:
 
 if __name__=="__main__":
     print("Games in the database:")
-    games=getGamesFromDB()
+    games=getGamesFromDB(amount=1)
     for game in games:
         print("Game:",game["uuid"])
         moves = re.findall(r'\b(?:[a-h][1-8](?:=[NBRQ])?|O-O(?:-O)?|[NBRQK]?[a-h]?[1-8]?[x-]?[a-h][1-8](?:=[NBRQ])?[+#]?)\b', game["pgn"])
@@ -118,7 +121,8 @@ if __name__=="__main__":
             for fen in fens:
                 print("FEN:")
                 pprint.pprint(fen)
-                print(f"Best line: {get_Best_line(fen,4,21)}")
+                line,score=get_Best_line(fen,4,21)
+                print(f"Best line: {convert_to_pgn(chess.Board(fen),line)},\n Score: {score}")
         except chess.IllegalMoveError:
             print("Illegal move error occured in game")
             pprint.pprint(game)
