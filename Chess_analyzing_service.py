@@ -112,7 +112,7 @@ if __name__=="__main__":
     games=getGamesFromDB()
     for game in games:
         print("Game:",game["uuid"])
-        moves = re.findall(r'\b(?:[a-h][1-8]|O-O(?:-O)?|[NBRQK]?[a-h]?[1-8]?[x-]?[a-h][1-8](?:=[NBRQ])?[+#]?)\b', game["pgn"])
+        moves = re.findall(r'\b(?:[a-h][1-8](?:=[NBRQ])?|O-O(?:-O)?|[NBRQK]?[a-h]?[1-8]?[x-]?[a-h][1-8](?:=[NBRQ])?[+#]?)\b', game["pgn"])
         try:
             fens = getFensFromMoveList(moves)
             for fen in fens:
