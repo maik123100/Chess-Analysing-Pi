@@ -1,5 +1,6 @@
 import chess
 import chess.engine
+import re
 import psycopg2
 import os
 import sys
@@ -111,6 +112,6 @@ if __name__=="__main__":
     pprint.pprint(games)
     for game in games:
         print("Game:",game["uuid"])
-        moves=game["pgn"].split()
+        moves = re.findall(r'\b(?:[a-h][1-8]|O-O(?:-O)?|[NBRQK]?[a-h]?[1-8]?[x-]?[a-h][1-8](?:=[NBRQ])?[+#]?)\b', game["pgn"])
         for idx,move in enumerate(moves):
             print(f"Move {idx+1}: {move}")
