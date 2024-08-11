@@ -89,12 +89,28 @@ def getGamesFromDB()->List[str]:
         games_list.append(game_dict)
 
     return games_list
-    
+
+def getFensFromMoveList(moves:List[chess.Move])->List[str]:
+    """
+    Gets the FEN string of the position after a list of moves
+    Args:
+        moves (list): List of moves
+    Returns:
+        str: FEN string
+    """
+    fens=[]
+    board=chess.Board()
+    for move in moves:
+        board.push(move)
+        fens.append(board.fen())
+    return fens
 
 if __name__=="__main__":
-    #line,score=get_Best_line(testFen,4,21)
-    #board = chess.Board(testFen)
-    #pgn_line = convert_to_pgn(board, line)
-    #print(f"Best line for position (Score:{score}) {testFen} is:{line}\n In PGN notation: {pgn_line}")
     print("Games in the database:")
-    pprint.pprint(getGamesFromDB())
+    games=getGamesFromDB()
+    pprint.pprint(games)
+    for game in games:
+        print("Game:",game["uuid"])
+        moves=game["pgn"].split()
+        for idx,move in enumerate(moves):
+            print(f"Move {idx+1}: {move}")
