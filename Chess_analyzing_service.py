@@ -117,7 +117,7 @@ if __name__=="__main__":
             fens = getFensFromMoveList(moves)
             for fen in fens:
                 print("FEN:")
-                pprint.pprint(fens)
+                pprint.pprint(fen)
                 print(f"Best line: {get_Best_line(fen,4,21)}")
         except chess.IllegalMoveError:
             print("Illegal move error occured in game")
