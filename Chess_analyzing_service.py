@@ -118,7 +118,9 @@ if __name__=="__main__":
             for fen in fens:
                 print("FEN:")
                 pprint.pprint(fens)
+                print(f"Best line: {get_Best_line(fen,4,21)}")
         except chess.IllegalMoveError:
             print("Illegal move error occured in game")
             pprint.pprint(game)
+            print("If this happens create a new issue on github and attach everything from Illegal move error occured in game to this line")
             sys.exit(1)
