@@ -102,6 +102,7 @@ def getFensFromMoveList(moves:List[chess.Move])->List[str]:
     fens=[]
     board=chess.Board()
     for move in moves:
+        print(f"Creating FEN for move: {move}")
         board.push(move)
         fens.append(board.fen())
     return fens
@@ -109,7 +110,6 @@ def getFensFromMoveList(moves:List[chess.Move])->List[str]:
 if __name__=="__main__":
     print("Games in the database:")
     games=getGamesFromDB()
-    pprint.pprint(games)
     for game in games:
         print("Game:",game["uuid"])
         moves = re.findall(r'\b(?:[a-h][1-8]|O-O(?:-O)?|[NBRQK]?[a-h]?[1-8]?[x-]?[a-h][1-8](?:=[NBRQ])?[+#]?)\b', game["pgn"])
