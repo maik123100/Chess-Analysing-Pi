@@ -116,7 +116,9 @@ if __name__=="__main__":
         try:
             fens = getFensFromMoveList(moves)
             for fen in fens:
-                print("FEN:",fens)
+                print("FEN:")
+                pprint.pprint(fens)
         except chess.IllegalMoveError:
             print("Illegal move error occured in game")
             pprint.pprint(game)
+            sys.exit(1)
