@@ -110,21 +110,55 @@ def getFensFromMoveList(moves:List[chess.Move])->List[str]:
         fens.append(board.fen())
     return fens
 
-if __name__=="__main__":
+def pushAnalysisToDB(analysisObjects:List[dict]):
+    """
+    Pushes the analysis to the database
+    Args:
+        analysisObjects (list): List of analysis objects
+    """
+    load_dotenv()
+    print("Pushing analysis to the database...")
+    db = psycopg2.connect(
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        host=os.getenv("DB_HOST")
+    )
+    cursor=db.cursor()
+    #TODO: Implement the push in a way that the analysis is linked to the game by the uuid and the table is created if it does not exist
+    pass
+
+def main():
     print("Games in the database:")
     games=getGamesFromDB(amount=1)
+    analysisObjects = []
     for game in games:
         print("Game:",game["uuid"])
         moves = re.findall(r'\b(?:[a-h][1-8](?:=[NBRQ])?|O-O(?:-O)?|[NBRQK]?[a-h]?[1-8]?[x-]?[a-h][1-8](?:=[NBRQ])?[+#]?)\b', game["pgn"])
         try:
             fens = getFensFromMoveList(moves)
-            for fen in fens:
+            analysisObject = {
+                "uuid": game["uuid"],
+            }
+            analysis = []
+            for idx,fen in enumerate(fens):
                 print("FEN:")
                 pprint.pprint(fen)
                 line,score=get_Best_line(fen,4,21)
                 print(f"Best line: {convert_to_pgn(chess.Board(fen),line)},\n Score: {score}")
+                analysis.append({
+                    "played_move": moves[idx],
+                    "best_line": convert_to_pgn(chess.Board(fen),line),
+                    "score": score
+                })
+            analysisObject["analysis"] = analysis
+
+            
         except chess.IllegalMoveError:
             print("Illegal move error occured in game")
             pprint.pprint(game)
             print("If this happens create a new issue on github and attach everything from Illegal move error occured in game to this line")
             sys.exit(1)
+
+if __name__=="__main__":
+    main()
