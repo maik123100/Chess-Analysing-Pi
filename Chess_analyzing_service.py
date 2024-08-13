@@ -126,7 +126,24 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
     )
     cursor=db.cursor()
     #TODO: Implement the push in a way that the analysis is linked to the game by the uuid and the table is created if it does not exist
-    pass
+    sql_table_query = """
+                CREATE TABLE IF NOT EXISTS analysis (
+                    uuid VARCHAR(255) PRIMARY KEY,
+                    played_move VARCHAR(255),
+                    best_line TEXT,
+                    score VARCHAR(255)
+                """
+    cursor.execute(sql_table_query)
+    db.commit()
+    for analysisObject in analysisObjects:
+        for analysis in analysisObject["analysis"]:
+            sql = """INSERT INTO analysis(uuid, played_move, best_line, score)
+                     VALUES (%s, %s, %s, %s)"""
+            values = (analysisObject["uuid"], analysis["played_move"], analysis["best_line"], analysis["score"])
+            cursor.execute(sql, values)
+            db.commit()
+    cursor.close()
+    db.close()
 
 def main():
     print("Games in the database:")
@@ -152,13 +169,13 @@ def main():
                     "score": score
                 })
             analysisObject["analysis"] = analysis
-
-            
+            analysisObjects.append(analysisObject)            
         except chess.IllegalMoveError:
             print("Illegal move error occured in game")
             pprint.pprint(game)
             print("If this happens create a new issue on github and attach everything from Illegal move error occured in game to this line")
             sys.exit(1)
+    pushAnalysisToDB(analysisObjects)
 
 if __name__=="__main__":
     main()
