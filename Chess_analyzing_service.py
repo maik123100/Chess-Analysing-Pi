@@ -149,8 +149,10 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
     db.commit()
     for analysisObject in analysisObjects:
         for analysis in analysisObject["analysis"]:
+            print(f"Current analysis: {analysis}")
             sql = """INSERT INTO analysis(uuid, played_move, best_line, score)
-                     VALUES (%s, %s, %s, %s)"""
+                     VALUES (%s, %s, %s, %s)
+                     ON CONFLICT (uuid, played_move) DO NOTHING"""
             values = (analysisObject["uuid"], analysis["played_move"], analysis["best_line"], analysis["score"])
             cursor.execute(sql, values)
             db.commit()
