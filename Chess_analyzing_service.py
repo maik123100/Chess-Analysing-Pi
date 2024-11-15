@@ -175,7 +175,7 @@ def main():
             for idx,fen in enumerate(fens):
                 print("FEN:")
                 pprint.pprint(fen)
-                line,score=get_Best_line(fen,4,11)
+                line,score=get_Best_line(fen,4,21)
                 print(f"Best line: {convert_to_pgn(chess.Board(fen),line)},\n Score: {score}")
                 analysis.append({
                     "played_move": moves[idx],
