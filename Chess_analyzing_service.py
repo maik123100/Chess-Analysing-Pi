@@ -8,7 +8,7 @@ import pprint
 from dotenv import load_dotenv
 from typing import List, Tuple
 
-stockfishPath="/home/Maik/Projects/Stockfish/src/stockfish"
+stockfishPath="/usr/local/bin/stockfish"
 testFen="6k1/4q1p1/2p3Qp/2p5/2Pb2PP/1P2r3/6K1/5R2 w - - 3 40"
 
 def get_Best_line(fen:str,threads:int,depth:int)->Tuple[List[chess.Move],chess.engine.PovScore]:
@@ -132,6 +132,7 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
                     played_move VARCHAR(255),
                     best_line TEXT,
                     score VARCHAR(255)
+		);
                 """
     cursor.execute(sql_table_query)
     db.commit()
@@ -161,7 +162,7 @@ def main():
             for idx,fen in enumerate(fens):
                 print("FEN:")
                 pprint.pprint(fen)
-                line,score=get_Best_line(fen,4,21)
+                line,score=get_Best_line(fen,4,11)
                 print(f"Best line: {convert_to_pgn(chess.Board(fen),line)},\n Score: {score}")
                 analysis.append({
                     "played_move": moves[idx],
