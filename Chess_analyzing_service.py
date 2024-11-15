@@ -110,6 +110,16 @@ def getFensFromMoveList(moves:List[chess.Move])->List[str]:
         fens.append(board.fen())
     return fens
 
+def convert_povscore_to_str(povscore: chess.engine.PovScore) -> str:
+    if povscore.is_mate():
+        # If it's a mate score, format as "M#N" or "M#-N"
+        mate_in: int = povscore.relative.mate()
+        return f"M#{mate_in}"
+    else:
+        # If it's a centipawn score, convert to a floating-point string
+        centipawn_score: int = povscore.relative.score()
+        return f"{centipawn_score / 100:.2f}"
+
 def pushAnalysisToDB(analysisObjects:List[dict]):
     """
     Pushes the analysis to the database
@@ -167,7 +177,7 @@ def main():
                 analysis.append({
                     "played_move": moves[idx],
                     "best_line": convert_to_pgn(chess.Board(fen),line),
-                    "score": score
+                    "score": convert_povscore_to_str(score)
                 })
             analysisObject["analysis"] = analysis
             analysisObjects.append(analysisObject)            
