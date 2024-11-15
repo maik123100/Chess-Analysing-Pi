@@ -135,14 +135,15 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
         host=os.getenv("DB_HOST")
     )
     cursor=db.cursor()
-    #TODO: Implement the push in a way that the analysis is linked to the game by the uuid and the table is created if it does not exist
     sql_table_query = """
                 CREATE TABLE IF NOT EXISTS analysis (
-                    uuid VARCHAR(255) PRIMARY KEY,
+                    uuid VARCHAR(255),
                     played_move VARCHAR(255),
                     best_line TEXT,
-                    score VARCHAR(255)
-		);
+                    score VARCHAR(255),
+                    PRIMARY KEY (uuid, played_move),
+                    FOREIGN KEY (uuid) REFERENCES games(uuid)
+                );
                 """
     cursor.execute(sql_table_query)
     db.commit()
