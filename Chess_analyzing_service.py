@@ -107,6 +107,8 @@ def getFensFromMoveList(moves:List[chess.Move])->List[str]:
     for move in moves:
         print(f"Creating FEN for move: {move}")
         board.push_san(move)
+        if board.is_game_over():
+            break
         fens.append(board.fen())
     return fens
 
