@@ -159,9 +159,57 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
     cursor.close()
     db.close()
 
+def getGamesWithoutAnalysis(limit: int = -1) -> List[dict]:
+    print("Fetching games without analysis from the database...")
+    db = psycopg2.connect(
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        host=os.getenv("DB_HOST")
+    )
+    cursor = db.cursor()
+    fetch_games_query = ""
+    if limit == -1:
+        fetch_games_query = """
+        SELECT g.uuid, g.white_username, g.white_rating, g.black_username, g.black_rating, g.time_control, g.pgn, g.win
+        FROM games g
+        LEFT JOIN analysis a ON g.uuid = a.uuid
+        WHERE a.uuid IS NULL
+        """
+    else:
+        fetch_games_query = f"""
+        SELECT g.uuid, g.white_username, g.white_rating, g.black_username, g.black_rating, g.time_control, g.pgn, g.win
+        FROM games g
+        LEFT JOIN analysis a ON g.uuid = a.uuid
+        WHERE a.uuid IS NULL
+        LIMIT {limit}
+        """
+    cursor.execute(fetch_games_query)
+    games = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    games_list = []
+    for game in games:
+        game_dict = {
+            "uuid": game[0],
+            "white_username": game[1],
+            "white_rating": game[2],
+            "black_username": game[3],
+            "black_rating": game[4],
+            "time_control": game[5],
+            "pgn": game[6],
+            "win": game[7]
+        }
+        games_list.append(game_dict)
+    if games_list.__len__()!=0:
+        print("Games without analysis found")
+    return games_list
+
 def main():
     print("Games in the database:")
-    games=getGamesFromDB(amount=1)
+    games=getGamesWithoutAnalysis()
     analysisObjects = []
     for game in games:
         print("Game:",game["uuid"])
