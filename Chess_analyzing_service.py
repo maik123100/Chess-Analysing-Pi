@@ -161,6 +161,7 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
 
 def getGamesWithoutAnalysis(limit: int = -1) -> List[dict]:
     print("Fetching games without analysis from the database...")
+    load_dotenv()
     db = psycopg2.connect(
         dbname=os.getenv("DB_NAME"),
         user=os.getenv("DB_USER"),
