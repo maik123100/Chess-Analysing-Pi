@@ -127,7 +127,8 @@ def push_games_to_db(games):
 
     for game in games:
         sql = """INSERT INTO games(uuid, white_username, white_rating, black_username, black_rating, time_control, pgn, win)
-                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
+                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                 ON CONFLICT (uuid) DO NOTHING"""
         values = (game['uuid'], game['white']['username'], game['white']['rating'], game['black']['username'], game['black']['rating'], game['time_control'], ''.join(str(move) for move in game['structured_pgn']['moves']), game['structured_pgn']['win'])
         print("SQL query prepared")
         try:

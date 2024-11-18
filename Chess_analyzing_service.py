@@ -151,7 +151,6 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
     db.commit()
     for analysisObject in analysisObjects:
         for analysis in analysisObject["analysis"]:
-            print(f"Current analysis: {analysis}")
             sql = """INSERT INTO analysis(uuid, played_move, best_line, score)
                      VALUES (%s, %s, %s, %s)
                      ON CONFLICT (uuid, played_move) DO NOTHING"""
@@ -210,7 +209,34 @@ def getGamesWithoutAnalysis(limit: int = -1) -> List[dict]:
         print("Games without analysis found")
     return games_list
 
+def initAnalysisTable():
+    load_dotenv()
+    print("Pushing analysis to the database...")
+    db = psycopg2.connect(
+        dbname=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        host=os.getenv("DB_HOST")
+    )
+    cursor=db.cursor()
+    sql_table_query = """
+                CREATE TABLE IF NOT EXISTS analysis (
+                    uuid VARCHAR(255),
+                    played_move VARCHAR(255),
+                    best_line TEXT,
+                    score VARCHAR(255),
+                    PRIMARY KEY (uuid, played_move),
+                    FOREIGN KEY (uuid) REFERENCES games(uuid)
+                );
+                """
+    cursor.execute(sql_table_query)
+    db.commit()
+    cursor.close()
+    db.close()
+
+
 def main():
+    initAnalysisTable()
     print("Games in the database:")
     games=getGamesWithoutAnalysis()
     analysisObjects = []
@@ -224,10 +250,7 @@ def main():
             }
             analysis = []
             for idx,fen in enumerate(fens):
-                print("FEN:")
-                pprint.pprint(fen)
-                line,score=get_Best_line(fen,4,21)
-                print(f"Best line: {convert_to_pgn(chess.Board(fen),line)},\n Score: {score}")
+                line,score=get_Best_line(fen,4,11)
                 analysis.append({
                     "played_move": moves[idx],
                     "best_line": convert_to_pgn(chess.Board(fen),line),
