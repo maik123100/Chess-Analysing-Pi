@@ -6,7 +6,19 @@ import time
 import psycopg2
 import os
 import sys
+from utils import get_db_connection
 from dotenv import load_dotenv
+
+def getGamesByUsernameTime(username):
+    base_url = f"https://api.chess.com/pub/player/{username}/games/"
+    command = ["curl", base_url]
+    try:
+        response = subprocess.run(command, capture_output=True, text=True, check=True)
+        json_data = json.loads(response.stdout)
+        return json_data['games']
+    except subprocess.CalledProcessError as e:
+        print(f"Error fetching data for {username}: {e}")
+        return None
 
 def get_today_games_by_username(username):
     base_url = f"https://api.chess.com/pub/player/{username}/games/{datetime.now().strftime('%Y/%m')}"
@@ -100,15 +112,8 @@ def get_JSONgames_for_db_by_username(username):
 
 def push_games_to_db(games):
     print("Pushing games to the database...")
-    db = psycopg2.connect(
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST")
-    )
-
+    db = get_db_connection()
     cursor = db.cursor()
-
     # Create table if it doesn't exist
     create_table_query = """
     CREATE TABLE IF NOT EXISTS games (

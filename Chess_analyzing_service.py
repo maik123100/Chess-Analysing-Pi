@@ -5,6 +5,7 @@ import psycopg2
 import os
 import sys
 import pprint
+from utils import get_db_connection
 from dotenv import load_dotenv
 from typing import List, Tuple
 
@@ -53,14 +54,8 @@ def getGamesFromDB(amount: int = -1) -> List[str]:
     Returns:
         list: List of games
     """
-    load_dotenv()
     print("Fetching games from the database...")
-    db = psycopg2.connect(
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST")
-    )
+    db = get_db_connection()
     cursor=db.cursor()
 
     fetch_games_query = """
@@ -113,6 +108,13 @@ def getFensFromMoveList(moves:List[chess.Move])->List[str]:
     return fens
 
 def convert_povscore_to_str(povscore: chess.engine.PovScore) -> str:
+    """
+    Converts a chess.engine.PovScore object to a string representation.
+    Args:
+        povscore (chess.engine.PovScore): The PovScore object to convert.
+    Returns:
+        str: The string representation of the PovScore object.
+    """
     if povscore.is_mate():
         # If it's a mate score, format as "M#N" or "M#-N"
         mate_in: int = povscore.relative.mate()
@@ -128,14 +130,8 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
     Args:
         analysisObjects (list): List of analysis objects
     """
-    load_dotenv()
     print("Pushing analysis to the database...")
-    db = psycopg2.connect(
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST")
-    )
+    db = get_db_connection()
     cursor=db.cursor()
     sql_table_query = """
                 CREATE TABLE IF NOT EXISTS analysis (
@@ -161,14 +157,15 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
     db.close()
 
 def getGamesWithoutAnalysis(limit: int = -1) -> List[dict]:
+    """
+    Fetches the games without analysis from the database
+    Args:
+        limit (int): Limit of games to fetch
+    Returns:
+        list: List of games without analysis
+    """
     print("Fetching games without analysis from the database...")
-    load_dotenv()
-    db = psycopg2.connect(
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST")
-    )
+    db = get_db_connection()
     cursor = db.cursor()
     fetch_games_query = ""
     if limit == -1:
@@ -210,14 +207,7 @@ def getGamesWithoutAnalysis(limit: int = -1) -> List[dict]:
     return games_list
 
 def initAnalysisTable():
-    load_dotenv()
-    print("Pushing analysis to the database...")
-    db = psycopg2.connect(
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST")
-    )
+    db = get_db_connection()
     cursor=db.cursor()
     sql_table_query = """
                 CREATE TABLE IF NOT EXISTS analysis (
@@ -261,9 +251,9 @@ def main():
         except chess.IllegalMoveError:
             print("Illegal move error occured in game")
             pprint.pprint(game)
-            print("If this happens create a new issue on github and attach everything from Illegal move error occured in game to this line")
+            print("If this happens create a new issue on github and attach everything from Illegal move error occured in game until this line")
             sys.exit(1)
     pushAnalysisToDB(analysisObjects)
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
