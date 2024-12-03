@@ -6,7 +6,7 @@ import time
 import psycopg2
 import os
 import sys
-from utils import get_db_connection
+from utils import getDBConnection
 from dotenv import load_dotenv
 
 def getGamesByUsernameTime(username):
@@ -20,7 +20,7 @@ def getGamesByUsernameTime(username):
         print(f"Error fetching data for {username}: {e}")
         return None
 
-def get_today_games_by_username(username):
+def getTodayGamesByUsername(username):
     base_url = f"https://api.chess.com/pub/player/{username}/games/{datetime.now().strftime('%Y/%m')}"
     command = ["curl", base_url]
     try:
@@ -31,7 +31,7 @@ def get_today_games_by_username(username):
         print(f"Error fetching data for {username}: {e}")
         return None
 
-def get_last_month_games_by_username(username):
+def getLastMonthGamesByUsername(username):
     base_url = f"https://api.chess.com/pub/player/{username}/games/{datetime.now().strftime('%Y/%m')}"
     base_url_last_month = f"https://api.chess.com/pub/player/{username}/games/{(datetime.now() - timedelta(days=30)).strftime('%Y/%m')}"
     command = ["curl", base_url]
@@ -62,7 +62,7 @@ def removeTimestamps(pgn):
         pgn = pgn[:start] + pgn[end+1:]
     return pgn
 
-def pgn_in_object_Format(pgn):
+def pgnToObjectFormat(pgn):
     moves_and_result = pgn.split()
     moves_and_result = [move for move in moves_and_result if "..." not in move]
     moves = moves_and_result[:-1]
@@ -78,7 +78,7 @@ def trimJSONData(json_game):
     start_index = json_game["pgn"].index("1. ")
     better_pgn = json_game["pgn"][start_index:]
     better_pgn = removeTimestamps(better_pgn)
-    better_pgn = pgn_in_object_Format(better_pgn)
+    better_pgn = pgnToObjectFormat(better_pgn)
     trimmed = {
         "uuid": json_game["uuid"],
         "white": {
@@ -94,25 +94,25 @@ def trimJSONData(json_game):
     }
     return trimmed
 
-def get_JSON_Month_games_for_db_by_username(username):
+def getJSONMonthGamesForDBByUsername(username):
     print(f"Fetching games for {username}")
-    games = get_last_month_games_by_username(username)
+    games = getLastMonthGamesByUsername(username)
     JSONgames_Array = []
     for game in games:
         JSONgames_Array.append(trimJSONData(game))
     return JSONgames_Array
 
-def get_JSONgames_for_db_by_username(username):
+def getJSONGamesForDBByUsername(username):
     print(f"Fetching games for {username}")
-    games = get_today_games_by_username(username)
+    games = getTodayGamesByUsername(username)
     JSONgames_Array = []
     for game in games:
         JSONgames_Array.append(trimJSONData(game))
     return JSONgames_Array
 
-def push_games_to_db(games):
+def pushGamesToDB(games):
     print("Pushing games to the database...")
-    db = get_db_connection()
+    db = getDBConnection()
     cursor = db.cursor()
     # Create table if it doesn't exist
     create_table_query = """
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     load_dotenv()
     print(f"ENV_Test: {os.getenv('ENV_Test')}")
     if os.getenv("ENV_Test") == "test":
-        pprint.pprint(get_last_month_games_by_username(os.getenv("CHESS_USERNAME")))
+        pprint.pprint(getLastMonthGamesByUsername(os.getenv("CHESS_USERNAME")))
     elif os.getenv("ENV_Test") == "prod":
         if len(sys.argv) != 2:
             print("Please provide one argument: 'init' for initialization or 'std' for standard execution")
@@ -162,14 +162,14 @@ if __name__ == "__main__":
             games = None
             if arg == 'init':
                 print("Initializing the database with the last month worth of games...")
-                games=get_JSON_Month_games_for_db_by_username(os.getenv("CHESS_USERNAME"))
+                games=getJSONMonthGamesForDBByUsername(os.getenv("CHESS_USERNAME"))
             elif arg == 'std':
                 print("Standard execution...")
-                games = get_JSONgames_for_db_by_username(os.getenv("CHESS_USERNAME"))
+                games = getJSONGamesForDBByUsername(os.getenv("CHESS_USERNAME"))
             else:
                 print("Invalid argument. Please provide 'init' for initialization or 'std' for standard execution")
                 sys.exit(1)
-            push_games_to_db(games)
+            pushGamesToDB(games)
     else:
         print("Invalid value for ENV_Test")
         raise Exception("ENV_Test must be set to either 'test' or 'prod'")

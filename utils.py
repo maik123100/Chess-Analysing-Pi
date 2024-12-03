@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import subprocess
 import json
 
-def get_db_connection()->psycopg2.extensions.connection:
+def getDBConnection()->psycopg2.extensions.connection:
     load_dotenv()
     return psycopg2.connect(
         dbname=os.getenv("DB_NAME"),

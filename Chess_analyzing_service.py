@@ -5,14 +5,14 @@ import psycopg2
 import os
 import sys
 import pprint
-from utils import get_db_connection
+from utils import getDBConnection
 from dotenv import load_dotenv
 from typing import List, Tuple
 
 stockfishPath="/usr/local/bin/stockfish"
 testFen="6k1/4q1p1/2p3Qp/2p5/2Pb2PP/1P2r3/6K1/5R2 w - - 3 40"
 
-def get_Best_line(fen:str,threads:int,depth:int)->Tuple[List[chess.Move],chess.engine.PovScore]:
+def getBestLine(fen:str,threads:int,depth:int)->Tuple[List[chess.Move],chess.engine.PovScore]:
     """
     Computes the best line of moves for a given FEN position
     Args:
@@ -31,7 +31,7 @@ def get_Best_line(fen:str,threads:int,depth:int)->Tuple[List[chess.Move],chess.e
     engine.quit()
     return (info["pv"],info["score"])
 
-def convert_to_pgn(board: chess.Board, moves: List[chess.Move]) -> List[str]:
+def uciToPgn(board: chess.Board, moves: List[chess.Move]) -> List[str]:
     """
     Converts a list of moves from UCI format to PGN (SAN) notation.
 
@@ -55,7 +55,7 @@ def getGamesFromDB(amount: int = -1) -> List[str]:
         list: List of games
     """
     print("Fetching games from the database...")
-    db = get_db_connection()
+    db = getDBConnection()
     cursor=db.cursor()
 
     fetch_games_query = """
@@ -107,7 +107,7 @@ def getFensFromMoveList(moves:List[chess.Move])->List[str]:
         fens.append(board.fen())
     return fens
 
-def convert_povscore_to_str(povscore: chess.engine.PovScore) -> str:
+def povscoreToStr(povscore: chess.engine.PovScore) -> str:
     """
     Converts a chess.engine.PovScore object to a string representation.
     Args:
@@ -131,7 +131,7 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
         analysisObjects (list): List of analysis objects
     """
     print("Pushing analysis to the database...")
-    db = get_db_connection()
+    db = getDBConnection()
     cursor=db.cursor()
     sql_table_query = """
                 CREATE TABLE IF NOT EXISTS analysis (
@@ -165,7 +165,7 @@ def getGamesWithoutAnalysis(limit: int = -1) -> List[dict]:
         list: List of games without analysis
     """
     print("Fetching games without analysis from the database...")
-    db = get_db_connection()
+    db = getDBConnection()
     cursor = db.cursor()
     fetch_games_query = ""
     if limit == -1:
@@ -207,7 +207,7 @@ def getGamesWithoutAnalysis(limit: int = -1) -> List[dict]:
     return games_list
 
 def initAnalysisTable():
-    db = get_db_connection()
+    db = getDBConnection()
     cursor=db.cursor()
     sql_table_query = """
                 CREATE TABLE IF NOT EXISTS analysis (
@@ -240,11 +240,11 @@ def main():
             }
             analysis = []
             for idx,fen in enumerate(fens):
-                line,score=get_Best_line(fen,4,11)
+                line,score=getBestLine(fen,4,11)
                 analysis.append({
                     "played_move": moves[idx],
-                    "best_line": convert_to_pgn(chess.Board(fen),line),
-                    "score": convert_povscore_to_str(score)
+                    "best_line": uciToPgn(chess.Board(fen),line),
+                    "score": povscoreToStr(score)
                 })
             analysisObject["analysis"] = analysis
             analysisObjects.append(analysisObject)            
