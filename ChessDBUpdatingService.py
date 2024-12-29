@@ -2,14 +2,12 @@ import subprocess
 import pprint
 import json
 from datetime import datetime, timedelta
-import time
-import psycopg2
 import os
 import sys
 from utils import getDBConnection
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 
-def getGamesByUsernameTime(username):
+def getGamesByUsernameTime(username:str,days:int):
     base_url = f"https://api.chess.com/pub/player/{username}/games/"
     command = ["curl", base_url]
     try:
@@ -63,10 +61,10 @@ def removeTimestamps(pgn):
     return pgn
 
 def pgnToObjectFormat(pgn):
-    moves_and_result = pgn.split()
-    moves_and_result = [move for move in moves_and_result if "..." not in move]
-    moves = moves_and_result[:-1]
-    win = moves_and_result[-1]
+    movesAndResult = pgn.split()
+    movesAndResult = [move for move in movesAndResult if "..." not in move]
+    moves = movesAndResult[:-1]
+    win = movesAndResult[-1]
     moves = [(moves[i], moves[i+1], moves[i+2] if i+2 < len(moves) else "None") for i in range(0, len(moves), 3)]
     pgn_object = {
         "moves": moves,
@@ -97,10 +95,10 @@ def trimJSONData(json_game):
 def getJSONMonthGamesForDBByUsername(username):
     print(f"Fetching games for {username}")
     games = getLastMonthGamesByUsername(username)
-    JSONgames_Array = []
+    JSONGamesArray = []
     for game in games:
-        JSONgames_Array.append(trimJSONData(game))
-    return JSONgames_Array
+        JSONGamesArray.append(trimJSONData(game))
+    return JSONGamesArray
 
 def getJSONGamesForDBByUsername(username):
     print(f"Fetching games for {username}")
@@ -115,7 +113,7 @@ def pushGamesToDB(games):
     db = getDBConnection()
     cursor = db.cursor()
     # Create table if it doesn't exist
-    create_table_query = """
+    createTableQuery = """
     CREATE TABLE IF NOT EXISTS games (
         uuid VARCHAR(255) PRIMARY KEY,
         white_username VARCHAR(255),
@@ -127,7 +125,7 @@ def pushGamesToDB(games):
         win VARCHAR(10)
     )
     """
-    cursor.execute(create_table_query)
+    cursor.execute(createTableQuery)
     db.commit()
 
     for game in games:

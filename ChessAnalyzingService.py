@@ -1,12 +1,9 @@
 import chess
 import chess.engine
 import re
-import psycopg2
-import os
 import sys
 import pprint
 from utils import getDBConnection
-from dotenv import load_dotenv
 from typing import List, Tuple
 
 stockfishPath="/usr/local/bin/stockfish"

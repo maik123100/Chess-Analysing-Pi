@@ -1,6 +1,6 @@
 import os
-import psycopg2
-from dotenv import load_dotenv
+import psycopg2 # type: ignore
+from dotenv import load_dotenv # type: ignore
 from datetime import datetime, timedelta
 import subprocess
 import json
