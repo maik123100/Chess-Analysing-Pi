@@ -5,6 +5,7 @@ import psycopg2
 import os
 import sys
 import pprint
+import json
 from dotenv import load_dotenv
 from typing import List, Tuple
 
@@ -138,25 +139,22 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
     )
     cursor=db.cursor()
     sql_table_query = """
-                CREATE TABLE IF NOT EXISTS analysis (
-                    uuid VARCHAR(255),
-                    played_move VARCHAR(255),
-                    best_line TEXT,
-                    score VARCHAR(255),
-                    PRIMARY KEY (uuid, played_move),
-                    FOREIGN KEY (uuid) REFERENCES games(uuid)
-                );
-                """
+        CREATE TABLE IF NOT EXISTS analysis (
+            uuid VARCHAR(255) PRIMARY KEY,
+            analysis JSON,
+            FOREIGN KEY (uuid) REFERENCES games(uuid)
+        );
+    """
     cursor.execute(sql_table_query)
     db.commit()
     for analysisObject in analysisObjects:
-        for analysis in analysisObject["analysis"]:
-            sql = """INSERT INTO analysis(uuid, played_move, best_line, score)
-                     VALUES (%s, %s, %s, %s)
-                     ON CONFLICT (uuid, played_move) DO NOTHING"""
-            values = (analysisObject["uuid"], analysis["played_move"], analysis["best_line"], analysis["score"])
-            cursor.execute(sql, values)
-            db.commit()
+        # analysisObject["analysis"] is a list of dicts
+        sql = """INSERT INTO analysis(uuid, analysis)
+                 VALUES (%s, %s)
+                 ON CONFLICT (uuid) DO UPDATE SET analysis = EXCLUDED.analysis"""
+        values = (analysisObject["uuid"], json.dumps(analysisObject["analysis"]))
+        cursor.execute(sql, values)
+        db.commit()
     cursor.close()
     db.close()
 
@@ -247,6 +245,7 @@ def main():
             fens = getFensFromMoveList(moves)
             analysisObject = {
                 "uuid": game["uuid"],
+                "analysis": []
             }
             analysis = []
             for idx,fen in enumerate(fens):
