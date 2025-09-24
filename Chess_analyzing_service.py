@@ -144,21 +144,21 @@ def pushAnalysisToDB(analysisObjects: List[dict]):
     )
     cursor = db.cursor()
     sql_table_query = """
-    CREATE TABLE IF NOT EXISTS analysis (
-        uuid VARCHAR(255) PRIMARY KEY,
-        analysis TEXT
-    );
+
+        CREATE TABLE IF NOT EXISTS analysis (
+            uuid VARCHAR(255) PRIMARY KEY,
+            analysis JSON,
+            FOREIGN KEY (uuid) REFERENCES games(uuid)
+        );
     """
     cursor.execute(sql_table_query)
     db.commit()
     for analysisObject in analysisObjects:
-        analysis_json = json.dumps(analysisObject.get("analysis", []))
-        sql = """
-        INSERT INTO analysis(uuid, analysis)
-        VALUES (%s, %s)
-        ON CONFLICT (uuid) DO UPDATE SET analysis = EXCLUDED.analysis
-        """
-        values = (analysisObject["uuid"], analysis_json)
+        # analysisObject["analysis"] is a list of dicts
+        sql = """INSERT INTO analysis(uuid, analysis)
+                 VALUES (%s, %s)
+                 ON CONFLICT (uuid) DO UPDATE SET analysis = EXCLUDED.analysis"""
+        values = (analysisObject["uuid"], json.dumps(analysisObject["analysis"]))
         cursor.execute(sql, values)
         db.commit()
     cursor.close()
@@ -254,6 +254,7 @@ def main():
             fens = getFensFromMoveList(moves)
             analysisObject = {
                 "uuid": game["uuid"],
+                "analysis": []
             }
             analysis = []
             for idx, fen in enumerate(fens):
