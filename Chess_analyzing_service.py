@@ -9,10 +9,11 @@ import json
 from dotenv import load_dotenv
 from typing import List, Tuple
 
-stockfishPath="/usr/local/bin/stockfish"
-testFen="6k1/4q1p1/2p3Qp/2p5/2Pb2PP/1P2r3/6K1/5R2 w - - 3 40"
+stockfishPath = "/usr/local/bin/stockfish"
+testFen = "6k1/4q1p1/2p3Qp/2p5/2Pb2PP/1P2r3/6K1/5R2 w - - 3 40"
 
-def get_Best_line(fen:str,threads:int,depth:int)->Tuple[List[chess.Move],chess.engine.PovScore]:
+
+def get_Best_line(fen: str, threads: int, depth: int) -> Tuple[List[chess.Move], chess.engine.PovScore]:
     """
     Computes the best line of moves for a given FEN position
     Args:
@@ -24,12 +25,13 @@ def get_Best_line(fen:str,threads:int,depth:int)->Tuple[List[chess.Move],chess.e
             - list: List of moves in the best line
             - str: Score of the best line
     """
-    engine=chess.engine.SimpleEngine.popen_uci(stockfishPath)
+    engine = chess.engine.SimpleEngine.popen_uci(stockfishPath)
     engine.configure({"Threads": threads})
-    board=chess.Board(fen)
-    info=engine.analyse(board,chess.engine.Limit(depth=depth))
+    board = chess.Board(fen)
+    info = engine.analyse(board, chess.engine.Limit(depth=depth))
     engine.quit()
-    return (info["pv"],info["score"])
+    return (info["pv"], info["score"])
+
 
 def convert_to_pgn(board: chess.Board, moves: List[chess.Move]) -> List[str]:
     """
@@ -48,6 +50,7 @@ def convert_to_pgn(board: chess.Board, moves: List[chess.Move]) -> List[str]:
         board.push(move)
     return pgn_moves
 
+
 def getGamesFromDB(amount: int = -1) -> List[str]:
     """
     Fetches the games from the database
@@ -62,15 +65,14 @@ def getGamesFromDB(amount: int = -1) -> List[str]:
         password=os.getenv("DB_PASSWORD"),
         host=os.getenv("DB_HOST")
     )
-    cursor=db.cursor()
+    cursor = db.cursor()
 
     fetch_games_query = """
-        SELECT uuid, white_username, white_rating, black_username, black_rating, time_control, pgn, win 
-        FROM games
+        SELECT uuid, white_username, white_rating, black_username, black_rating, time_control, pgn, win FROM games
         """
     if amount != -1:
         fetch_games_query += f" LIMIT {amount}"
-    
+
     cursor.execute(fetch_games_query)
     games = cursor.fetchall()
 
@@ -95,7 +97,8 @@ def getGamesFromDB(amount: int = -1) -> List[str]:
 
     return games_list
 
-def getFensFromMoveList(moves:List[chess.Move])->List[str]:
+
+def getFensFromMoveList(moves: List[chess.Move]) -> List[str]:
     """
     Gets the FEN string of the position after a list of moves
     Args:
@@ -103,8 +106,8 @@ def getFensFromMoveList(moves:List[chess.Move])->List[str]:
     Returns:
         str: FEN string
     """
-    fens=[]
-    board=chess.Board()
+    fens = []
+    board = chess.Board()
     for move in moves:
         print(f"Creating FEN for move: {move}")
         board.push_san(move)
@@ -112,6 +115,7 @@ def getFensFromMoveList(moves:List[chess.Move])->List[str]:
             break
         fens.append(board.fen())
     return fens
+
 
 def convert_povscore_to_str(povscore: chess.engine.PovScore) -> str:
     if povscore.is_mate():
@@ -123,7 +127,8 @@ def convert_povscore_to_str(povscore: chess.engine.PovScore) -> str:
         centipawn_score: int = povscore.relative.score()
         return f"{centipawn_score / 100:.2f}"
 
-def pushAnalysisToDB(analysisObjects:List[dict]):
+
+def pushAnalysisToDB(analysisObjects: List[dict]):
     """
     Pushes the analysis to the database
     Args:
@@ -137,8 +142,9 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
         password=os.getenv("DB_PASSWORD"),
         host=os.getenv("DB_HOST")
     )
-    cursor=db.cursor()
+    cursor = db.cursor()
     sql_table_query = """
+
         CREATE TABLE IF NOT EXISTS analysis (
             uuid VARCHAR(255) PRIMARY KEY,
             analysis JSON,
@@ -157,6 +163,7 @@ def pushAnalysisToDB(analysisObjects:List[dict]):
         db.commit()
     cursor.close()
     db.close()
+
 
 def getGamesWithoutAnalysis(limit: int = -1) -> List[dict]:
     print("Fetching games without analysis from the database...")
@@ -203,9 +210,10 @@ def getGamesWithoutAnalysis(limit: int = -1) -> List[dict]:
             "win": game[7]
         }
         games_list.append(game_dict)
-    if games_list.__len__()!=0:
+    if games_list.__len__() != 0:
         print("Games without analysis found")
     return games_list
+
 
 def initAnalysisTable():
     load_dotenv()
@@ -216,7 +224,7 @@ def initAnalysisTable():
         password=os.getenv("DB_PASSWORD"),
         host=os.getenv("DB_HOST")
     )
-    cursor=db.cursor()
+    cursor = db.cursor()
     sql_table_query = """
                 CREATE TABLE IF NOT EXISTS analysis (
                     uuid VARCHAR(255),
@@ -236,11 +244,12 @@ def initAnalysisTable():
 def main():
     initAnalysisTable()
     print("Games in the database:")
-    games=getGamesWithoutAnalysis()
+    games = getGamesWithoutAnalysis()
     analysisObjects = []
     for game in games:
-        print("Game:",game["uuid"])
-        moves = re.findall(r'\b(?:[a-h][1-8](?:=[NBRQ])?|O-O(?:-O)?|[NBRQK]?[a-h]?[1-8]?[x-]?[a-h][1-8](?:=[NBRQ])?[+#]?)\b', game["pgn"])
+        print("Game:", game["uuid"])
+        moves = re.findall(
+            r'\b(?:[a-h][1-8](?:=[NBRQ])?|O-O(?:-O)?|[NBRQK]?[a-h]?[1-8]?[x-]?[a-h][1-8](?:=[NBRQ])?[+#]?)\b', game["pgn"])
         try:
             fens = getFensFromMoveList(moves)
             analysisObject = {
@@ -248,15 +257,15 @@ def main():
                 "analysis": []
             }
             analysis = []
-            for idx,fen in enumerate(fens):
-                line,score=get_Best_line(fen,4,11)
+            for idx, fen in enumerate(fens):
+                line, score = get_Best_line(fen, 4, 11)
                 analysis.append({
                     "played_move": moves[idx],
-                    "best_line": convert_to_pgn(chess.Board(fen),line),
+                    "best_line": convert_to_pgn(chess.Board(fen), line),
                     "score": convert_povscore_to_str(score)
                 })
             analysisObject["analysis"] = analysis
-            analysisObjects.append(analysisObject)            
+            analysisObjects.append(analysisObject)
         except chess.IllegalMoveError:
             print("Illegal move error occured in game")
             pprint.pprint(game)
@@ -264,5 +273,6 @@ def main():
             sys.exit(1)
     pushAnalysisToDB(analysisObjects)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
