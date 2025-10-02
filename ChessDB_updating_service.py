@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 
 
 def get_today_games_by_username(username):
-    base_url = f"https://api.chess.com/pub/player/{
-        username}/games/{datetime.now().strftime('%Y/%m')}"
+    base_url = (
+        f"https://api.chess.com/pub/player/{username}/games/{datetime.now().strftime('%Y/%m')}")
     command = ["curl", base_url]
     try:
         response = subprocess.run(
@@ -23,10 +23,11 @@ def get_today_games_by_username(username):
 
 
 def get_last_month_games_by_username(username):
-    base_url = f"https://api.chess.com/pub/player/{
-        username}/games/{datetime.now().strftime('%Y/%m')}"
-    base_url_last_month = f"https://api.chess.com/pub/player/{username}/games/{
-        (datetime.now() - timedelta(days=30)).strftime('%Y/%m')}"
+    base_url = (
+        f"https://api.chess.com/pub/player/{username}/games/{datetime.now().strftime('%Y/%m')}")
+    stringtime = (datetime.now() - timedelta(days=30)).strftime('%Y/%m')
+    base_url_last_month = (
+        f"https://api.chess.com/pub/player/{username}/games/{stringtime}")
     command = ["curl", base_url]
     try:
         response = subprocess.run(
@@ -44,8 +45,9 @@ def get_last_month_games_by_username(username):
 
 
 def filterTodayGames(games):
-    today = f"[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"{
-        datetime.now().strftime('%Y.%m.%d')}\"]"
+    timestring = datetime.now().strftime('%Y.%m.%d')
+    today = (
+        f"[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"{timestring}\"]")
     today_games = []
     for game in games:
         if game["pgn"].startswith(today):
