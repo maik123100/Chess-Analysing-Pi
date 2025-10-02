@@ -9,7 +9,7 @@ import json
 from dotenv import load_dotenv
 from typing import List, Tuple
 
-stockfishPath = "/usr/local/bin/stockfish"
+stockfishPath = "/usr/games/stockfish"
 testFen = "6k1/4q1p1/2p3Qp/2p5/2Pb2PP/1P2r3/6K1/5R2 w - - 3 40"
 
 
